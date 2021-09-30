@@ -12,6 +12,6 @@ allprojects {
 Step 2. Add the dependency
 ```
 dependencies {
-	        implementation 'com.github.KruBakhal:CamGal_Library:1.0.0'
+	        implementation 'com.github.KruBakhal:CamGall_Library:1.0.0'
 	}
 ````
