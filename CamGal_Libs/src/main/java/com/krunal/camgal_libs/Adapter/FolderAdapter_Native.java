@@ -13,7 +13,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.krunal.camgal_libs.GalleryActivity;
+import com.krunal.camgal_libs.View.GalleryActivity;
 import com.krunal.camgal_libs.Intermediate.onAddItemListner;
 import com.krunal.camgal_libs.Model.GalleryModel;
 import com.krunal.camgal_libs.Model.ImageModel;

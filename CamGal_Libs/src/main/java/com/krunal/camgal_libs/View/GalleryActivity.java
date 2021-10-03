@@ -1,4 +1,4 @@
-package com.krunal.camgal_libs;
+package com.krunal.camgal_libs.View;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -37,7 +37,8 @@ import com.krunal.camgal_libs.Intermediate.SelectedAdapterListener;
 import com.krunal.camgal_libs.Intermediate.onAddItemListner;
 import com.krunal.camgal_libs.Model.GalleryModel;
 import com.krunal.camgal_libs.Model.ImageModel;
-import com.krunal.camgal_libs.Utils.BookStore;
+
+import com.krunal.camgal_libs.R;
 import com.krunal.camgal_libs.Utils.Constant;
 import com.krunal.camgal_libs.Utils.FileUtils;
 import com.krunal.camgal_libs.Utils.HelperResizer;
@@ -76,16 +77,20 @@ public class GalleryActivity extends AppCompatActivity implements FolderAdapter_
     private FileUtils utilsStorage;
     private @NonNull
     ActivityGalleryBinding viewBinding;
-    private BookStore bookStore;
     public String folder_position_native = null;
     public int selectedPosition = 0;
     public ArrayList<ImageModel> list_new_pic_selected = new ArrayList<>();
     public ArrayList<ImageModel> selected_OriginalImageList;
     public int TotalImgCount = 5;
-    private int compressionSize = 0;
-    private String gallery_type = null;
-    private String compression_Type = null;
+    private long compressionSize = 0;
+    private int gallery_type;
     private boolean compressStatus;
+
+    private boolean maintainAspectRatio;
+    private int resizePercentage;
+    private String resizeWidthHeight;
+    private boolean croppingStatus;
+    private String croppingRatio;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,33 +111,18 @@ public class GalleryActivity extends AppCompatActivity implements FolderAdapter_
         context = this;
         utilsStorage = new FileUtils();
         utilsStorage.cacheFolder(context);
-        bookStore = new BookStore(context);
 
-        String g_type = getIntent().getStringExtra(Constant.GALLERY_TYPE);
-        if (!TextUtils.isEmpty(g_type)) {
-            gallery_type = getGalleryTypeString(Integer.parseInt(g_type));
-        }
-        if (TextUtils.isEmpty(gallery_type)) {
-            gallery_type = getGalleryTypeString(bookStore.get_GALLERY_TYPE());
-        }
+        Intent sdas = getIntent();
+        gallery_type = getIntent().getIntExtra(Constant.GALLERY_TYPE, 0);//, getGalleryType(mimeTypes));// 0-ALL,1-PNG,2-JPG,3-JPEG
+        TotalImgCount = getIntent().getIntExtra(Constant.IMAGE_Selection_COUNT, 5);//, imageCount);//
+        compressStatus = getIntent().getBooleanExtra(Constant.COMPRESS_STATUS, true);//, compressionStatus);// active or inactive
+        compressionSize = getIntent().getLongExtra(Constant.COMPRESSION_SIZE, 5000);//, compressionSize);// long
+        maintainAspectRatio = getIntent().getBooleanExtra(Constant.MAINTAIN_ASPECT_RATIO, true);//, maintainAspectRatio);// long
+        resizePercentage = getIntent().getIntExtra(Constant.ASPECT_RATIO_RESIZE_PERCENTAGE, 10);//, resizePercentage);// long
+        resizeWidthHeight = getIntent().getStringExtra(Constant.RESIZE_WIDTH_HEIGHT_RESOLUTION);//, width_height_Resize);// long
+        croppingStatus = getIntent().getBooleanExtra(Constant.CROP, true);//, crop);
+        croppingRatio = getIntent().getStringExtra(Constant.CROP_RATIO);//, cropX + "%" + cropY);
 
-        TotalImgCount = getIntent().getIntExtra(Constant.IMAGE_Selection_COUNT, bookStore.get_Image_Selection_Count());
-
-        compressStatus = getIntent().getBooleanExtra(Constant.COMPRESS_STATUS, bookStore.get_COMPRESS_STATUS());
-
-        compressionSize = getIntent().getIntExtra(Constant.COMPRESSION_SIZE, bookStore.get_COMPRESSION_SIZE());
-
-        String c_type = getIntent().getStringExtra(Constant.COMPRESSION_SIZE_Type);
-        if (!TextUtils.isEmpty(c_type)) {
-            if (c_type.equals("MB")) {
-                compression_Type = "MB";
-            } else if (c_type.equals("KB")) {
-                compression_Type = "KB";
-            }
-        }
-        if (TextUtils.isEmpty(compression_Type)) {
-            compression_Type = bookStore.get_COMPRESSION_Type();
-        }
     }
 
     private void click() {
@@ -328,23 +318,30 @@ public class GalleryActivity extends AppCompatActivity implements FolderAdapter_
                 Log.d("TAG", "onClickNext: " + e.toString());
                 return;
             }
-/*
 
-            Bundle bundle = new Bundle();
-            bundle.putString(ARG_PARAM1, new Gson().toJson(picList1));
-            Navigation.findNavController(viewBinding.getRoot())
-                    .navigate(R.id.action_galleryFragment_to_imagesFragment, bundle);
-*/
-
-            someActivityResultLauncher.launch(new Intent(context, CompressionResizerActivity.class)
-                    .putExtra(ARG_PARAM1, new Gson().toJson(picList1))
-                    .putExtra(Constant.COMPRESS_STATUS, compressStatus)
-                    .putExtra(Constant.COMPRESSION_SIZE_Type, compression_Type)
-                    .putExtra(Constant.COMPRESSION_SIZE, compressionSize)
-            );
+            if (croppingStatus) {
+                Bundle bundle = new Bundle();
+                bundle.putInt(Constant.GALLERY_TYPE, gallery_type);// 0-ALL,1-PNG,2-JPG,3-JPEG
+                bundle.putInt(Constant.IMAGE_Selection_COUNT, TotalImgCount);//
+                bundle.putBoolean(Constant.COMPRESS_STATUS, compressStatus);// active or inactive
+                bundle.putLong(Constant.COMPRESSION_SIZE, compressionSize);// long
+                bundle.putBoolean(Constant.MAINTAIN_ASPECT_RATIO, maintainAspectRatio);// long
+                bundle.putInt(Constant.ASPECT_RATIO_RESIZE_PERCENTAGE, resizePercentage);// long
+                bundle.putString(Constant.RESIZE_WIDTH_HEIGHT_RESOLUTION, resizeWidthHeight);// long
+                bundle.putBoolean(Constant.CROP, croppingStatus);
+                bundle.putString(Constant.CROP_RATIO, croppingRatio);
 
 
-            return;
+                someActivityResultLauncher.launch(new Intent(context, CompressionResizerActivity.class)
+                        .putExtra(ARG_PARAM1, new Gson().toJson(picList1)).putExtras(bundle));
+            } else {
+                ArrayList<String> selected = new ArrayList<>();
+                for (int i = 0; i < picList1.size(); i++) {
+                    selected.add(list_new_pic_selected.get(i).getfPath());
+                }
+                setResult(RESULT_OK, new Intent().putStringArrayListExtra("selectedImages", selected));
+                finish();
+            }
         }
 
 
@@ -518,7 +515,6 @@ public class GalleryActivity extends AppCompatActivity implements FolderAdapter_
             this.context = context;
             this.type = type;
             this.imageModel = imageModel;
-            gallery_type = getGalleryTypeString(bookStore.get_GALLERY_TYPE());
         }
 
         @Override
@@ -552,7 +548,7 @@ public class GalleryActivity extends AppCompatActivity implements FolderAdapter_
             }
 
             String str = "No Image Found In Your Device";
-            switch (bookStore.get_GALLERY_TYPE()) {
+            switch (gallery_type) {
                 case 1:
                     str = "No Image Found Of PNG Image Type In Your Device";
                     break;
@@ -590,9 +586,9 @@ public class GalleryActivity extends AppCompatActivity implements FolderAdapter_
             String[] projection = {MediaStore.Images.Media.DATA, MediaStore.Images.Media.BUCKET_DISPLAY_NAME};
             String selection = MediaStore.Images.Media.BUCKET_ID + "=?";
             String[] selectionArgs;
-            if (!TextUtils.isEmpty(gallery_type)) {
+            if (gallery_type > 0 && gallery_type <= 3) {
                 selection = selection + " AND " + MediaStore.Images.Media.MIME_TYPE + "=?";
-                selectionArgs = new String[]{id, gallery_type};
+                selectionArgs = new String[]{id, getGalleryTypeString(gallery_type)};
             } else {
                 selectionArgs = new String[]{id};
             }

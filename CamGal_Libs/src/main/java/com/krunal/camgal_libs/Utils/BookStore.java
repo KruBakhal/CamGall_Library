@@ -33,24 +33,24 @@ public class BookStore {
     }
 
     public String get_RESOLUTION() {
-        return sharedPreferences.getString(SAVE_RESOLUTION, "720%720");
+        return sharedPreferences.getString(RESIZE_WIDTH_HEIGHT_RESOLUTION, "720%720");
     }
 
     public void set_SAVE_RESOLUTION(String count) {
         editor = sharedPreferences.edit();
-        editor.putString(SAVE_RESOLUTION, count);
+        editor.putString(RESIZE_WIDTH_HEIGHT_RESOLUTION, count);
         editor.commit();
 
     }
 
     // 0-Back, 1-Front
     public int get_FACING_MODE() {
-        return sharedPreferences.getInt(FACING_MODE, 0);
+        return sharedPreferences.getInt(CAMERA_FACING_MODE, 0);
     }
 
     public void set_FACING_MODE(int count) {
         editor = sharedPreferences.edit();
-        editor.putInt(FACING_MODE, count);
+        editor.putInt(CAMERA_FACING_MODE, count);
         editor.commit();
 
     }
@@ -77,21 +77,21 @@ public class BookStore {
     }
 
     public boolean get_ASPECT_RATIO() {
-        return sharedPreferences.getBoolean(ASPECT_RATIO, true);
+        return sharedPreferences.getBoolean(MAINTAIN_ASPECT_RATIO, true);
     }
 
     public void setASPECT_RATIO(boolean count) {
-        editor.putBoolean(ASPECT_RATIO, count);
+        editor.putBoolean(MAINTAIN_ASPECT_RATIO, count);
         editor.commit();
     }
 
     public int get_RESIZE_RATIO_Percentage() {
-        return sharedPreferences.getInt(RESIZE_RATIO_Percentage, 10);
+        return sharedPreferences.getInt(ASPECT_RATIO_RESIZE_PERCENTAGE, 10);
     }
 
     public void set_RESIZE_RATIO_Percentage(int count) {
         editor = sharedPreferences.edit();
-        editor.putInt(RESIZE_RATIO_Percentage, count);
+        editor.putInt(ASPECT_RATIO_RESIZE_PERCENTAGE, count);
         editor.commit();
     }
 

@@ -21,15 +21,14 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.krunal.camgal_libs.CameraActivity;
-import com.krunal.camgal_libs.CreationActivity;
-import com.krunal.camgal_libs.GalleryActivity;
+import com.krunal.camgal_libs.View.CreationActivity;
 import com.krunal.camgal_libs.Intermediate.PickerListener;
+import com.krunal.camgal_libs.LibsCall.DismissListener;
+import com.krunal.camgal_libs.LibsCall.ResultListener;
+import com.krunal.camgal_libs.LibsCall.Type.PickerOption;
 import com.krunal.camgal_libs.R;
-import com.krunal.camgal_libs.SettingActivity;
 import com.krunal.camgal_libs.Utils.Constant;
 import com.krunal.camgal_libs.Utils.Utility;
 import com.krunal.camgal_libs.databinding.FragmentPickerBottomSheetBinding;
@@ -51,6 +50,7 @@ public class PickerBottomSheetFragment extends BottomSheetDialogFragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private DismissListener dismissListener;
     private Intent intentCall;
 
     // TODO: Rename and change types of parameters
@@ -58,13 +58,15 @@ public class PickerBottomSheetFragment extends BottomSheetDialogFragment {
     private String mParam2;
     private FragmentPickerBottomSheetBinding viewBinding;
     PickerListener pickerListener;
+
     private int imageType = 0;
     private int imageCount = 5;
     private boolean compressionStatus = true;
     private int compressionSize = Constant.DEFAULT_COMRESSION_SIZE;
     private String compressionType = "MB";
-    boolean visibleCreationOptions = true;
-    boolean visibleSettingOption = true;
+    boolean visibleCreationOptions = false;
+    boolean visibleSettingOption = false;
+    ResultListener listener;
 
     public PickerBottomSheetFragment(int imageType, int imageCount, boolean compressionStatus, int compressionSize, String compressionType) {
         this.imageType = imageType;
@@ -83,9 +85,15 @@ public class PickerBottomSheetFragment extends BottomSheetDialogFragment {
         intentCall = intent;
     }
 
+    public PickerBottomSheetFragment(ResultListener listener, DismissListener dismissListener) {
+        this.listener = listener;
+        this.dismissListener = dismissListener;
+    }
+
     public PickerBottomSheetFragment() {
 
     }
+
 
     // TODO: Rename and change types and number of parameters
     public static PickerBottomSheetFragment newInstance(String param1, String param2) {
@@ -120,15 +128,16 @@ public class PickerBottomSheetFragment extends BottomSheetDialogFragment {
         pickerListener = (PickerListener) getActivity();
 
         if (visibleCreationOptions) {
-            viewBinding.creation.setVisibility(View.GONE);
-        } else {
             viewBinding.creation.setVisibility(View.VISIBLE);
+        } else {
+            viewBinding.creation.setVisibility(View.GONE);
         }
         if (visibleSettingOption) {
-            viewBinding.setting.setVisibility(View.GONE);
-        } else {
             viewBinding.setting.setVisibility(View.VISIBLE);
+        } else {
+            viewBinding.setting.setVisibility(View.GONE);
         }
+
         viewBinding.close.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -141,11 +150,8 @@ public class PickerBottomSheetFragment extends BottomSheetDialogFragment {
             public void onClick(View v) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                        // do operation
                         openCamera();
                     } else {
-                        // request Permission in Activity
-//                        requestPermissions(new String[]{Manifest.permission.CAMERA}, 300);
                         mPermissionResultCamera.launch(Manifest.permission.CAMERA);
                     }
                 } else {
@@ -153,13 +159,12 @@ public class PickerBottomSheetFragment extends BottomSheetDialogFragment {
                 }
             }
         });
+
         viewBinding.gallery.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
-                            == PackageManager.PERMISSION_GRANTED) {
-                        // do operation
+                    if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                         openGallery();
                     } else {
                         mPermissionResultGallery.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
@@ -180,7 +185,14 @@ public class PickerBottomSheetFragment extends BottomSheetDialogFragment {
         viewBinding.setting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getContext(), SettingActivity.class));
+//                startActivity(new Intent(getContext(), SettingActivity.class));
+
+            }
+        });
+        viewBinding.close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dismiss();
 
             }
         });
@@ -193,7 +205,9 @@ public class PickerBottomSheetFragment extends BottomSheetDialogFragment {
                     openCamera();
                 } else {
                     Utility.displayToast(getContext(), getResources().getString(R.string.permission_denied));
-
+                    if (dismissListener != null)
+                        dismissListener.onDismiss();
+                    dismiss();
                 }
             });
     private ActivityResultLauncher<String> mPermissionResultGallery = registerForActivityResult(
@@ -203,40 +217,52 @@ public class PickerBottomSheetFragment extends BottomSheetDialogFragment {
                     openGallery();
                 } else {
                     Utility.displayToast(getContext(), getResources().getString(R.string.permission_denied));
+                    if (dismissListener != null)
+                        dismissListener.onDismiss();
+                    dismiss();
                 }
             });
 
 
     private void openGallery() {
+        listener.onResult(PickerOption.GALLERY);
+        if (dismissListener != null)
+            dismissListener.onDismiss();
+        dismiss();
+        /*
         if (intentCall == null) {
             intentCall = new Intent();
         } else {
-          /*  intentCall.putExtra(Constant.GALLERY_TYPE, imageType)// 0-ALL,1-PNG,2-JPG,3-JPEG
+          *//*  intentCall.putExtra(Constant.GALLERY_TYPE, imageType)// 0-ALL,1-PNG,2-JPG,3-JPEG
                     .putExtra(Constant.IMAGE_Selection_COUNT, imageCount)//
                     .putExtra(Constant.COMPRESS_STATUS, compressionStatus)// active or inactive
                     .putExtra(Constant.COMPRESSION_SIZE, compressionSize)// (int) long
                     .putExtra(Constant.COMPRESSION_SIZE_Type, compressionType);// KB,MB
-*/
+*//*
         }
         intentCall.setClass(getActivity(), GalleryActivity.class);
 
-        resultLauncher.launch(intentCall);
+        resultLauncher.launch(intentCall);*/
+
     }
 
     private void openCamera() {
+        listener.onResult(PickerOption.CAMERA);
+        dismiss();
+        /*
         if (intentCall == null) {
             intentCall = new Intent();
         } else {
-           /* intentCall.putExtra(Constant.GALLERY_TYPE, imageType)// 0-ALL,1-PNG,2-JPG,3-JPEG
+           *//* intentCall.putExtra(Constant.GALLERY_TYPE, imageType)// 0-ALL,1-PNG,2-JPG,3-JPEG
                     .putExtra(Constant.IMAGE_Selection_COUNT, imageCount)//
                     .putExtra(Constant.COMPRESS_STATUS, compressionStatus)// active or inactive
                     .putExtra(Constant.COMPRESSION_SIZE, compressionSize)// (int) long
                     .putExtra(Constant.COMPRESSION_SIZE_Type, compressionType);// KB,MB
-*/
+*//*
         }
         intentCall.setClass(getActivity(), CameraActivity.class);
 
-        resultLauncher.launch(intentCall);
+        resultLauncher.launch(intentCall);*/
     }
 
     ActivityResultLauncher<Intent> resultLauncher = registerForActivityResult(
@@ -248,7 +274,8 @@ public class PickerBottomSheetFragment extends BottomSheetDialogFragment {
                     if (result.getResultCode() == RESULT_OK) {
                         ArrayList<String> listSaved = result.getData().getStringArrayListExtra("selectedImages");
                         pickerListener.onResultPicker(result.getData(), listSaved);
-                    } else if (result.getResultCode() == Activity.RESULT_FIRST_USER || result.getResultCode() == Activity.RESULT_CANCELED) {
+                    } else if (result.getResultCode() == Activity.RESULT_FIRST_USER
+                            || result.getResultCode() == Activity.RESULT_CANCELED) {
                         pickerListener.onResultPicker(result.getData(), new ArrayList<>());
                         Utility.displayToast(getContext(), "No result");
                     }
@@ -258,7 +285,6 @@ public class PickerBottomSheetFragment extends BottomSheetDialogFragment {
             });
 
     @NonNull
-    @NotNull
     @Override
     public Dialog onCreateDialog(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
 //        getDialog().setCancelable(false);
@@ -268,34 +294,16 @@ public class PickerBottomSheetFragment extends BottomSheetDialogFragment {
     @Override
     public void onCancel(@NonNull @NotNull DialogInterface dialog) {
         super.onCancel(dialog);
+
     }
 
     @Override
     public void dismiss() {
         super.dismiss();
-
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 200) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
-            ) {
-                // do Operation
-                openGallery();
-            } else {
-                Toast.makeText(getContext(), "Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        }
-        if (requestCode == 300) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
-            ) {
-                // do Operation
-                openCamera();
-            } else {
-                Toast.makeText(getContext(), "Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        }
+
+    public void setListner(ResultListener listener) {
+        this.listener = listener;
     }
 }

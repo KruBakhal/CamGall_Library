@@ -16,13 +16,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 
 import com.krunal.camgal_libs.Adapter.ImageAdapter_Native;
-import com.krunal.camgal_libs.GalleryActivity;
+import com.krunal.camgal_libs.View.GalleryActivity;
 import com.krunal.camgal_libs.Intermediate.OnImageListner;
 import com.krunal.camgal_libs.Model.GalleryModel;
 import com.krunal.camgal_libs.Model.ImageModel;
 import com.krunal.camgal_libs.R;
 import com.krunal.camgal_libs.Utils.Alana_GridSpacing;
-import com.krunal.camgal_libs.Utils.BookStore;
+
 import com.krunal.camgal_libs.Utils.HelperResizer;
 import com.krunal.camgal_libs.Utils.Utility;
 
@@ -72,7 +72,7 @@ public class Gallery_Fragment_Native extends Fragment implements ImageAdapter_Na
     public void onViewCreated(@NonNull @NotNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mainFragment = (GalleryActivity) getActivity();
-        ImgCount = new BookStore(getContext()).get_Image_Selection_Count();
+        ImgCount = mainFragment.TotalImgCount;
 
     }
 

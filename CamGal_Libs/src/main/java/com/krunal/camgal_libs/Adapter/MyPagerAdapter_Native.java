@@ -10,7 +10,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.krunal.camgal_libs.Frag.Gallery_Fragment_Native;
-import com.krunal.camgal_libs.GalleryActivity;
+import com.krunal.camgal_libs.View.GalleryActivity;
 
 import java.util.ArrayList;
 import java.util.List;

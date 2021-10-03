@@ -1,4 +1,4 @@
-package com.krunal.camgal_libs;
+package com.krunal.camgal_libs.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;

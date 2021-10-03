@@ -1,4 +1,4 @@
-package com.krunal.camgal_libs;
+package com.krunal.camgal_libs.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,7 +17,9 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.krunal.camgal_libs.Model.ImageModel;
-import com.krunal.camgal_libs.Utils.BookStore;
+
+import com.krunal.camgal_libs.R;
+import com.krunal.camgal_libs.Utils.Constant;
 import com.krunal.camgal_libs.Utils.FileUtils;
 import com.krunal.camgal_libs.Utils.HelperResizer;
 import com.krunal.camgal_libs.databinding.ActivityCropperBinding;
@@ -46,13 +48,24 @@ public class CropperActivity extends AppCompatActivity {
     private int orginal_width;
     private int orginal_hight;
 
+    private int ImgCount = 5;
+    private int Facing_MODE = 0;
+    private boolean compressStatus;
+    private long compressionSize;
+    private int mineType;
+    private boolean maintainAspectRatio;
+    private int resizePercentage;
+    private String resizeWidthHeight;
+    private boolean croppingStatus;
+    private String croppingRatio;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 //        setContentView(R.layout.activity_cropper);
         viewBinding = ActivityCropperBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
-        mContext=this;
+        mContext = this;
         mParam1 = getIntent().getStringExtra(ARG_PARAM1);
         currentIndex = getIntent().getIntExtra(ARG_PARAM2, 0);
         Type type = new TypeToken<ArrayList<ImageModel>>() {
@@ -122,22 +135,36 @@ public class CropperActivity extends AppCompatActivity {
         orginal_hight = options.outHeight;
         orginal_width = options.outWidth;
 
-        if (new BookStore(this).get_ASPECT_RATIO()) {
+
+        mineType = getIntent().getExtras().getInt(Constant.GALLERY_TYPE, 0);//, getGalleryType(mimeTypes));// 0-ALL,1-PNG,2-JPG,3-JPEG
+        Facing_MODE = getIntent().getExtras().getInt(Constant.CAMERA_FACING_MODE, 0);//, getCameraMode(camera_mode));// 0-ALL,1-PNG,2-JPG,3-JPEG
+        ImgCount = getIntent().getExtras().getInt(Constant.IMAGE_Selection_COUNT, 5);//, imageCount);//
+        compressStatus = getIntent().getExtras().getBoolean(Constant.COMPRESS_STATUS, true);//, compressionStatus);// active or inactive
+        compressionSize = getIntent().getExtras().getLong(Constant.COMPRESSION_SIZE, 5000);//, compressionSize);// long
+        maintainAspectRatio = getIntent().getExtras().getBoolean(Constant.MAINTAIN_ASPECT_RATIO, true);//, maintainAspectRatio);// long
+        resizePercentage = getIntent().getExtras().getInt(Constant.ASPECT_RATIO_RESIZE_PERCENTAGE, 10);//, resizePercentage);// long
+        resizeWidthHeight = getIntent().getExtras().getString(Constant.RESIZE_WIDTH_HEIGHT_RESOLUTION, "720%720");//, width_height_Resize);// long
+        croppingStatus = getIntent().getExtras().getBoolean(Constant.CROP, true);//, crop);
+        croppingRatio = getIntent().getExtras().getString(Constant.CROP_RATIO, "9%16");//, cropX + "%" + cropY);
+
+        if (maintainAspectRatio) {
             width = orginal_width;
             hight = orginal_hight;
         } else {
-            String[] size = new BookStore(this).get_RESOLUTION().split("%");
+            String[] size = resizeWidthHeight.split("%");
             width = Integer.parseInt(size[0]);
             hight = Integer.parseInt(size[1]);
         }
-
         try {
             viewBinding.imageCropView.setImageUriAsync(Uri.fromFile(new File(orginalImageList.get(currentIndex).getfPath())));
         } catch (Exception e) {
             Log.d("cropper", "initParameter: " + e.toString());
         }
-
-        viewBinding.imageCropView.setAspectRatio(width, hight);
+        String[] cropRatio = croppingRatio.split("%");
+        if (cropRatio[0].equals("0") && cropRatio[1].equals("0")) {
+            viewBinding.imageCropView.setAspectRatio(width, hight);
+        } else
+            viewBinding.imageCropView.setAspectRatio(Integer.parseInt(cropRatio[0]), Integer.parseInt(cropRatio[1]));
     }
 
 

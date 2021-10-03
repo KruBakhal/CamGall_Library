@@ -17,8 +17,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.krunal.camgal_libs.CameraActivity;
-import com.krunal.camgal_libs.GalleryActivity;
+import com.krunal.camgal_libs.View.CameraActivity;
+import com.krunal.camgal_libs.View.GalleryActivity;
 import com.krunal.camgal_libs.Intermediate.SelectedAdapterListener;
 import com.krunal.camgal_libs.Model.ImageModel;
 import com.krunal.camgal_libs.R;

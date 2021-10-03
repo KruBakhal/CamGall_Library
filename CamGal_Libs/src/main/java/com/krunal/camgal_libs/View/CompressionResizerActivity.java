@@ -1,4 +1,4 @@
-package com.krunal.camgal_libs;
+package com.krunal.camgal_libs.View;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -24,7 +24,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.krunal.camgal_libs.Adapter.Original_Image_Adapter;
 import com.krunal.camgal_libs.Model.ImageModel;
-import com.krunal.camgal_libs.Utils.BookStore;
+
 import com.krunal.camgal_libs.Utils.Constant;
 import com.krunal.camgal_libs.Utils.FileUtils;
 import com.krunal.camgal_libs.Utils.HelperResizer;
@@ -53,17 +53,22 @@ public class CompressionResizerActivity extends AppCompatActivity {
     private FinalCompressResizerTask compressResizerTask;
     private Type typetype = new TypeToken<ArrayList<ImageModel>>() {
     }.getType();
-    private String compression_Type;
-    private BookStore bookStore;
-    private int compression_Size;
+    private int ImgCount = 5;
+    private int Facing_MODE = 0;
     private boolean compressStatus;
+    private long compressionSize;
+    private int mineType;
+    private boolean maintainAspectRatio;
+    private int resizePercentage;
+    private String resizeWidthHeight;
+    private boolean croppingStatus;
+    private String croppingRatio;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         viewBinding = ActivityCompressionResizerBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
-        bookStore = new BookStore(this);
         resize();
         initData();
         click();
@@ -75,21 +80,18 @@ public class CompressionResizerActivity extends AppCompatActivity {
         mParam2 = getIntent().getStringExtra(ARG_PARAM2);
         listImages.addAll(new Gson().fromJson(mParam1, typetype));
 
-        compressStatus = getIntent().getBooleanExtra(Constant.COMPRESS_STATUS, bookStore.get_COMPRESS_STATUS());
+        mineType = getIntent().getExtras().getInt(Constant.GALLERY_TYPE, 0);//, getGalleryType(mimeTypes));// 0-ALL,1-PNG,2-JPG,3-JPEG
+        Facing_MODE = getIntent().getExtras().getInt(Constant.CAMERA_FACING_MODE, 0);//, getCameraMode(camera_mode));// 0-ALL,1-PNG,2-JPG,3-JPEG
+        ImgCount = getIntent().getExtras().getInt(Constant.IMAGE_Selection_COUNT, 5);//, imageCount);//
+        compressStatus = getIntent().getExtras().getBoolean(Constant.COMPRESS_STATUS, true);//, compressionStatus);// active or inactive
+        compressionSize = getIntent().getExtras().getLong(Constant.COMPRESSION_SIZE, 5000);//, compressionSize);// long
+        maintainAspectRatio = getIntent().getExtras().getBoolean(Constant.MAINTAIN_ASPECT_RATIO, true);//, maintainAspectRatio);// long
+        resizePercentage = getIntent().getExtras().getInt(Constant.ASPECT_RATIO_RESIZE_PERCENTAGE, 10);//, resizePercentage);// long
+        resizeWidthHeight = getIntent().getExtras().getString(Constant.RESIZE_WIDTH_HEIGHT_RESOLUTION, "720%720");//, width_height_Resize);// long
+        croppingStatus = getIntent().getExtras().getBoolean(Constant.CROP, true);//, crop);
+        croppingRatio = getIntent().getExtras().getString(Constant.CROP_RATIO, "9%16");//, cropX + "%" + cropY);
 
-        compression_Size = getIntent().getIntExtra(Constant.COMPRESSION_SIZE, bookStore.get_COMPRESSION_SIZE());
 
-        String c_type = getIntent().getStringExtra(Constant.COMPRESSION_SIZE_Type);
-        if (!TextUtils.isEmpty(c_type)) {
-            if (c_type.equals("MB")) {
-                compression_Type = "MB";
-            } else if (c_type.equals("KB")) {
-                compression_Type = "KB";
-            }
-        }
-        if (TextUtils.isEmpty(compression_Type)) {
-            compression_Type = bookStore.get_COMPRESSION_Type();
-        }
     }
 
     private void setAdapter() {
@@ -97,9 +99,21 @@ public class CompressionResizerActivity extends AppCompatActivity {
             @Override
             public void onCropImageClick(ImageModel image, int position) {
 
+                Bundle bundle = new Bundle();
+                bundle.putInt(Constant.GALLERY_TYPE, mineType);// 0-ALL,1-PNG,2-JPG,3-JPEG
+                bundle.putInt(Constant.CAMERA_FACING_MODE, Facing_MODE);// 0-ALL,1-PNG,2-JPG,3-JPEG
+                bundle.putInt(Constant.IMAGE_Selection_COUNT, ImgCount);//
+                bundle.putBoolean(Constant.COMPRESS_STATUS, compressStatus);// active or inactive
+                bundle.putLong(Constant.COMPRESSION_SIZE, compressionSize);// long
+                bundle.putBoolean(Constant.MAINTAIN_ASPECT_RATIO, maintainAspectRatio);// long
+                bundle.putInt(Constant.ASPECT_RATIO_RESIZE_PERCENTAGE, resizePercentage);// long
+                bundle.putString(Constant.RESIZE_WIDTH_HEIGHT_RESOLUTION, resizeWidthHeight);// long
+                bundle.putBoolean(Constant.CROP, croppingStatus);
+                bundle.putString(Constant.CROP_RATIO, croppingRatio);
+
 
                 someActivityResultLauncher.launch(new Intent(CompressionResizerActivity.this, CropperActivity.class)
-                        .putExtra(ARG_PARAM1, new Gson().toJson(listImages)).putExtra(ARG_PARAM2, position)
+                        .putExtra(ARG_PARAM1, new Gson().toJson(listImages)).putExtra(ARG_PARAM2, position).putExtras(bundle)
                 );
             }
 
@@ -130,11 +144,13 @@ public class CompressionResizerActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+/*
 
                 someActivityResultLauncher.launch(new Intent(
                         CompressionResizerActivity.this, SettingActivity.class)
                         .putExtra(ARG_PARAM1, new Gson().toJson(listImages))
                 );
+*/
 
             }
         });
@@ -173,7 +189,8 @@ public class CompressionResizerActivity extends AppCompatActivity {
                     }
                 }
             });
-         private void resize() {
+
+    private void resize() {
 
         viewBinding.tvTitle.setText("Images");
         HelperResizer.setHeight(this, viewBinding.actionBar, 150);
@@ -255,24 +272,16 @@ public class CompressionResizerActivity extends AppCompatActivity {
                         width = bitmap.getWidth();
                         height = bitmap.getHeight();
 
-                        int config_size = bookStore.get_COMPRESSION_SIZE();
 
-                        if (compression_Type.equals("MB")) {
-                            config_size = compression_Size * 1000000;
-                        } else {
-                            config_size = compression_Size * 1000;
-                        }
-                        Log.d("TAG", "file size: " + config_size + "  param size " + compression_Size + "" + bookStore.get_COMPRESSION_Type());
-
-                        // here it compare image restriction size with file size if more the resize operatin perform.
-                        if (bitmapFile.exists() && bitmapFile.length() > config_size) {
+                        // here it compare image restriction size with file size if more the resize operation perform.
+                        if (bitmapFile.exists() && bitmapFile.length() > compressionSize) {
 
                             // get resize config param from settings
-                            if (bookStore.get_ASPECT_RATIO()) {
-                                width = Integer.parseInt(getValueByPercentage(width, bookStore.get_RESIZE_RATIO_Percentage(), 100, width));
-                                height = Integer.parseInt(getValueByPercentage(height, bookStore.get_RESIZE_RATIO_Percentage(), 100, height));
+                            if (maintainAspectRatio) {
+                                width = Integer.parseInt(getValueByPercentage(width, resizePercentage, 100, width));
+                                height = Integer.parseInt(getValueByPercentage(height, resizePercentage, 100, height));
                             } else {
-                                String[] size = bookStore.get_RESOLUTION().split("%");
+                                String[] size = resizeWidthHeight.split("%");
                                 width = Integer.parseInt(size[0]);
                                 height = Integer.parseInt(size[1]);
                             }
@@ -288,8 +297,6 @@ public class CompressionResizerActivity extends AppCompatActivity {
                         }
                         // compress the image according config parma from settings for Compression.
                         if (compressStatus) {
-                            // choose according to your requirement.
-
                             // 1st library for compression.
                             /*
                                 Tiny.BitmapCompressOptions options = new Tiny.BitmapCompressOptions();
@@ -297,12 +304,12 @@ public class CompressionResizerActivity extends AppCompatActivity {
                                 options.height = height;
                                 BitmapResult result = Tiny.getInstance().source(file.getAbsolutePath()).asBitmap().withOptions(options).compressSync();
                             */
-
                             // 2nd library for compression.
                             Compressor compressor = new Compressor(context);
                             compressor.setQuality(80);
                             bitmap = compressor.compressToBitmap(bitmapFile);
-                            savepath = saveImageToCache(new FileUtils().getTemp_Compressed_ImagePath(CompressionResizerActivity.this)
+                            savepath = saveImageToCache(new FileUtils()
+                                            .getTemp_Compressed_ImagePath(CompressionResizerActivity.this)
                                     , bitmap, getPicNameByPosition(i));
                             bitmapFile = new File(savepath);
 

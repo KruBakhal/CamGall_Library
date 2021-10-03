@@ -1,4 +1,4 @@
-package com.krunal.camgal_libs;
+package com.krunal.camgal_libs.View;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -21,7 +21,8 @@ import com.google.gson.Gson;
 import com.krunal.camgal_libs.Adapter.SelectedImageAdapter_Native;
 import com.krunal.camgal_libs.Intermediate.SelectedAdapterListener;
 import com.krunal.camgal_libs.Model.ImageModel;
-import com.krunal.camgal_libs.Utils.BookStore;
+
+import com.krunal.camgal_libs.R;
 import com.krunal.camgal_libs.Utils.Constant;
 import com.krunal.camgal_libs.Utils.FileUtils;
 import com.krunal.camgal_libs.Utils.HelperResizer;
@@ -52,18 +53,21 @@ public class CameraActivity extends AppCompatActivity implements SelectedAdapter
     private SelectedImageAdapter_Native imageSelectedAdapter;
     private ArrayList<ImageModel> list_new_pic_selected;
     private FileUtils utilsStorage;
-    private BookStore bookStore;
     private int ImgCount = 5;
     private int Facing_MODE = 0;
     Context context;
     private boolean compressStatus;
-    private int compressionSize;
-    private String compression_Type;
+    private long compressionSize;
+    private int mineType;
+    private boolean maintainAspectRatio;
+    private int resizePercentage;
+    private String resizeWidthHeight;
+    private boolean croppingStatus;
+    private String croppingRatio;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_camera);
         viewBinding = ActivityCameraBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
         context = this;
@@ -75,24 +79,19 @@ public class CameraActivity extends AppCompatActivity implements SelectedAdapter
     private void initData() {
         utilsStorage = new FileUtils();
         utilsStorage.cacheFolder(context);
-        bookStore = new BookStore(context);
 
-        ImgCount = getIntent().getIntExtra(Constant.IMAGE_Selection_COUNT, bookStore.get_Image_Selection_Count());
-        Facing_MODE = getIntent().getIntExtra(Constant.FACING_MODE, bookStore.get_FACING_MODE());
-        compressStatus = getIntent().getBooleanExtra(Constant.COMPRESS_STATUS, bookStore.get_COMPRESS_STATUS());
-        compressionSize = getIntent().getIntExtra(Constant.COMPRESSION_SIZE, bookStore.get_COMPRESSION_SIZE());
 
-        String c_type = getIntent().getStringExtra(Constant.COMPRESSION_SIZE_Type);
-        if (!TextUtils.isEmpty(c_type)) {
-            if (c_type.equals("MB")) {
-                compression_Type = "MB";
-            } else if (c_type.equals("KB")) {
-                compression_Type = "KB";
-            }
-        }
-        if (TextUtils.isEmpty(compression_Type)) {
-            compression_Type = bookStore.get_COMPRESSION_Type();
-        }
+        mineType = getIntent().getExtras().getInt(Constant.GALLERY_TYPE, 0);//, getGalleryType(mimeTypes));// 0-ALL,1-PNG,2-JPG,3-JPEG
+        Facing_MODE = getIntent().getExtras().getInt(Constant.CAMERA_FACING_MODE, 0);//, getCameraMode(camera_mode));// 0-ALL,1-PNG,2-JPG,3-JPEG
+        ImgCount = getIntent().getExtras().getInt(Constant.IMAGE_Selection_COUNT, 5);//, imageCount);//
+        compressStatus = getIntent().getExtras().getBoolean(Constant.COMPRESS_STATUS, true);//, compressionStatus);// active or inactive
+        compressionSize = getIntent().getExtras().getLong(Constant.COMPRESSION_SIZE, 5000);//, compressionSize);// long
+        maintainAspectRatio = getIntent().getExtras().getBoolean(Constant.MAINTAIN_ASPECT_RATIO, true);//, maintainAspectRatio);// long
+        resizePercentage = getIntent().getExtras().getInt(Constant.ASPECT_RATIO_RESIZE_PERCENTAGE, 10);//, resizePercentage);// long
+        resizeWidthHeight = getIntent().getExtras().getString(Constant.RESIZE_WIDTH_HEIGHT_RESOLUTION, "720%720");//, width_height_Resize);// long
+        croppingStatus = getIntent().getExtras().getBoolean(Constant.CROP, true);//, crop);
+        croppingRatio = getIntent().getExtras().getString(Constant.CROP_RATIO, "9%16");//, cropX + "%" + cropY);
+
 
         switch (Facing_MODE) {
             case 0:
@@ -189,19 +188,32 @@ public class CameraActivity extends AppCompatActivity implements SelectedAdapter
                         return;
                     }
 
-//                    Bundle bundle = new Bundle();
-//                    bundle.putString(ARG_PARAM1, new Gson().toJson(picList1));
+                    if (croppingStatus) {
+                        Bundle bundle = new Bundle();
+                        bundle.putInt(Constant.GALLERY_TYPE, mineType);// 0-ALL,1-PNG,2-JPG,3-JPEG
+                        bundle.putInt(Constant.CAMERA_FACING_MODE, Facing_MODE);// 0-ALL,1-PNG,2-JPG,3-JPEG
+                        bundle.putInt(Constant.IMAGE_Selection_COUNT, ImgCount);//
+                        bundle.putBoolean(Constant.COMPRESS_STATUS, compressStatus);// active or inactive
+                        bundle.putLong(Constant.COMPRESSION_SIZE, compressionSize);// long
+                        bundle.putBoolean(Constant.MAINTAIN_ASPECT_RATIO, maintainAspectRatio);// long
+                        bundle.putInt(Constant.ASPECT_RATIO_RESIZE_PERCENTAGE, resizePercentage);// long
+                        bundle.putString(Constant.RESIZE_WIDTH_HEIGHT_RESOLUTION, resizeWidthHeight);// long
+                        bundle.putBoolean(Constant.CROP, croppingStatus);
+                        bundle.putString(Constant.CROP_RATIO, croppingRatio);
 
-                 /*   startActivity(new Intent(context, CompressionResizerActivity.class)
-                            .putExtra(ARG_PARAM1, new Gson().toJson(picList1)));*/
+                        someActivityResultLauncher.launch(new Intent(context, CompressionResizerActivity.class)
+                                .putExtra(ARG_PARAM1, new Gson().toJson(picList1))
+                                .putExtras(bundle));
 
-                    someActivityResultLauncher.launch(new Intent(context, CompressionResizerActivity.class)
-                            .putExtra(ARG_PARAM1, new Gson().toJson(picList1))
-                            .putExtra(Constant.COMPRESS_STATUS, compressStatus)
-                            .putExtra(Constant.COMPRESSION_SIZE_Type, compression_Type)
-                            .putExtra(Constant.COMPRESSION_SIZE, compressionSize)
-                    );
 
+                    } else {
+                        ArrayList<String> selected = new ArrayList<>();
+                        for (int i = 0; i < picList1.size(); i++) {
+                            selected.add(list_new_pic_selected.get(i).getfPath());
+                        }
+                        setResult(RESULT_OK, new Intent().putStringArrayListExtra("selectedImages", selected));
+                        finish();
+                    }
                 }
                 onClickEvent(v);
             }
