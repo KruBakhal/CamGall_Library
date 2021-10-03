@@ -3,6 +3,7 @@ package com.krunal.camgal_libs.Utils;
 public class Constant {
     public static final String CROP = "Crop";
     public static final String CROP_RATIO = "Crop_RATIO";
+    public static final String BASEFOLDER = "BASEFOLDER";
     public static String IMAGE_Selection_COUNT = "IMAGE_Selection_COUNT";
     public static String CAMERA_FACING_MODE = "FACING_MODE"; // 0-Back, 1-Front
     public static String GALLERY_TYPE = "GALLERY_TYPE"; // 0-ALL,1-PNG,2-JPG,3-JPEG

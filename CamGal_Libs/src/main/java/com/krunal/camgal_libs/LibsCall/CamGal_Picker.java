@@ -181,7 +181,7 @@ public class CamGal_Picker {
             return this;
         }
 
-        @NotNull
+       /* @NotNull
         public final CamGal_Picker.Builder saveDir(@NotNull String path) {
             this.saveDir = path;
             return this;
@@ -192,7 +192,7 @@ public class CamGal_Picker {
             this.saveDir = file.getAbsolutePath();
             return this;
         }
-
+*/
 
         @NotNull
         public final CamGal_Picker.Builder setDismissListener(@NotNull DismissListener listener) {
@@ -243,6 +243,10 @@ public class CamGal_Picker {
         }
 
         private final Bundle getBundle() {
+            Activity activity;
+            if (fragment != null)
+                activity = fragment.getActivity();
+            else activity = this.activity;
             Bundle bundle = new Bundle();
             bundle.putInt(Constant.GALLERY_TYPE, getGalleryType(mimeTypes));// 0-ALL,1-PNG,2-JPG,3-JPEG
             bundle.putInt(Constant.CAMERA_FACING_MODE, getCameraMode(camera_mode));// 0-ALL,1-PNG,2-JPG,3-JPEG

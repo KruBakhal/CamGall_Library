@@ -91,6 +91,7 @@ public class GalleryActivity extends AppCompatActivity implements FolderAdapter_
     private String resizeWidthHeight;
     private boolean croppingStatus;
     private String croppingRatio;
+    private String BASEFOLDER;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

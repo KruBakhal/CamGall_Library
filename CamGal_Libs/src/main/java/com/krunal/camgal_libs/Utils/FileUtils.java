@@ -12,12 +12,10 @@ import java.io.IOException;
 public class FileUtils {
 
 
-    private final String STORY_MAKER_FOLDER = "StoryMaker";
     public String strTemp_Image = "images"; // cancelled
     public String strTemp_CroppedImage = "cropped";
     public String strTemp_CompressedImage = "Compressed";
     public String APPDIRECTORY = "";
-
 
     public String getTempImageFolder(Context context) {
         String path = context.getFilesDir().getPath() + File.separator + strTemp_Image;
@@ -26,11 +24,6 @@ public class FileUtils {
             file.mkdirs();
         }
         return path;
-    }
-
-    public void setAppDir(Context mContext) {
-
-        APPDIRECTORY = getOurAppFolder(mContext);
     }
 
     public String getTemp_OriginalImage_Path(Context mContext) {
@@ -82,35 +75,6 @@ public class FileUtils {
         }
         return path;
     }
-
-    public String getOurAppFolder(Context mContext) {
-        String path;
-
-        path = Environment.getExternalStorageDirectory() + File.separator + getAppName(mContext);
-
-        File file = new File(path);
-        if (!file.exists()) {
-            file.mkdir();
-        }
-        return path;
-    }
-
-    public String get_StoryMaker_CreationPath(Context mContext) {
-        setAppDir(mContext);
-        String path = getOurAppFolder(mContext) + File.separator + "MyCreation" + File.separator + STORY_MAKER_FOLDER;
-        File file = new File(path);
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-        return file.getAbsolutePath();
-    }
-
-    public String getAppName(Context mContext) {
-        if (mContext == null)
-            return null;
-        return mContext.getString(R.string.app_name);
-    }
-
 
     public void emptyTempCompressedImages(Context context) {
         File file = new File(getTemp_Compressed_ImagePath(context));

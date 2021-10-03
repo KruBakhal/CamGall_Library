@@ -118,36 +118,7 @@ public class MainActivity extends AppCompatActivity implements PickerListener, V
 
                 break;
             case R.id.btn8:
-                CamGal_Picker.with(this)
-                        /// Provide directory path to save images, Added example saveDir method. You can choose directory as per your need.
-
-                        //  Path: /storage/sdcard0/Android/data/package/files
-                        .saveDir(getExternalFilesDir(null))
-                        //  Path: /storage/sdcard0/Android/data/package/files/DCIM
-                        .saveDir(getExternalFilesDir(Environment.DIRECTORY_DCIM))
-                        //  Path: /storage/sdcard0/Android/data/package/files/Download
-                        .saveDir(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS))
-                        //  Path: /storage/sdcard0/Android/data/package/files/Pictures
-                        .saveDir(getExternalFilesDir(Environment.DIRECTORY_PICTURES))
-                        //  Path: /storage/sdcard0/Android/data/package/files/Pictures/ImagePicker
-                        .saveDir(new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "ImagePicker"))
-                        //  Path: /storage/sdcard0/Android/data/package/files/ImagePicker
-                        .saveDir(getExternalFilesDir("ImagePicker"))
-                        //  Path: /storage/sdcard0/Android/data/package/cache/ImagePicker
-                        .saveDir(new File(getExternalCacheDir(), "ImagePicker"))
-                        //  Path: /data/data/package/cache/ImagePicker
-                        .saveDir(new File(getCacheDir(), "ImagePicker"))
-                        //  Path: /data/data/package/files/ImagePicker
-                        .saveDir(new File(getFilesDir(), "ImagePicker"))
-
-                        // Below saveDir path will not work, So do not use it
-                        //  Path: /storage/sdcard0/DCIM
-                        //  .saveDir(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM))
-                        //  Path: /storage/sdcard0/Pictures
-                        //  .saveDir(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))
-                        //  Path: /storage/sdcard0/ImagePicker
-                        //  .saveDir(File(Environment.getExternalStorageDirectory(), "ImagePicker"))
-
+                CamGal_Picker.with(this).cameraOnly()
                         .start();
 
                 break;
