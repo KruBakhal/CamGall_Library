@@ -73,7 +73,7 @@
         android:id="@+id/layTop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/actionBar"
+        android:layout_below="@+id/actionBar"
         android:layout_marginTop="@dimen/_5sdp"
         android:layout_marginBottom="@dimen/_5sdp"
         android:gravity="center_vertical"
