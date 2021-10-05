@@ -16,6 +16,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.google.gson.Gson;
 import com.krunal.camgal_libs.Adapter.SelectedImageAdapter_Native;
@@ -29,6 +32,7 @@ import com.krunal.camgal_libs.Utils.HelperResizer;
 import com.krunal.camgal_libs.databinding.ActivityCameraBinding;
 import com.otaliastudios.cameraview.CameraListener;
 import com.otaliastudios.cameraview.CameraLogger;
+import com.otaliastudios.cameraview.CameraView;
 import com.otaliastudios.cameraview.FileCallback;
 import com.otaliastudios.cameraview.PictureResult;
 import com.otaliastudios.cameraview.controls.Facing;
@@ -49,7 +53,6 @@ import static com.krunal.camgal_libs.Utils.Utility.onClickEvent;
 public class CameraActivity extends AppCompatActivity implements SelectedAdapterListener {
 
     public int selectedPosition = 0;
-    private ActivityCameraBinding viewBinding;
     private SelectedImageAdapter_Native imageSelectedAdapter;
     private ArrayList<ImageModel> list_new_pic_selected;
     private FileUtils utilsStorage;
@@ -64,16 +67,43 @@ public class CameraActivity extends AppCompatActivity implements SelectedAdapter
     private String resizeWidthHeight;
     private boolean croppingStatus;
     private String croppingRatio;
+    private RecyclerView rv_selectedImageList;
+    private LinearLayout innerLay, lay_actionBar, layBack, layDone, lay_camera, lay_capture, layBottom;
+    ImageView btnBack, btnDone, capturePictureSnapshot, switchCamera;
+    private TextView tv2, tv1, tv_title, textView;
+    CameraView camera;
+    View layText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewBinding = ActivityCameraBinding.inflate(getLayoutInflater());
-        setContentView(viewBinding.getRoot());
+        setContentView(R.layout.activity_camera);
         context = this;
+        UI();
         new FileUtils().cacheFolder(context);
         setupCamera();
         initData();
+    }
+
+    private void UI() {
+        lay_actionBar = findViewById(R.id.lay_actionBar);
+        layBack = findViewById(R.id.layBack);
+        btnBack = findViewById(R.id.btnBack);
+        tv_title = findViewById(R.id.tv_title);
+        layDone = findViewById(R.id.layDone);
+        btnDone = findViewById(R.id.btnDone);
+        lay_camera = findViewById(R.id.lay_camera);
+        camera = findViewById(R.id.camera);
+        lay_capture = findViewById(R.id.lay_capture);
+        capturePictureSnapshot = findViewById(R.id.capturePictureSnapshot);
+        switchCamera = findViewById(R.id.switchCamera);
+        textView = findViewById(R.id.textView);
+        layBottom = findViewById(R.id.layBottom);
+        layText = findViewById(R.id.layText);
+        tv1 = findViewById(R.id.tv1);
+        tv2 = findViewById(R.id.tv2);
+        innerLay = findViewById(R.id.innerLay);
+        rv_selectedImageList = findViewById(R.id.rv_selectedImageList);
     }
 
     private void initData() {
@@ -95,34 +125,34 @@ public class CameraActivity extends AppCompatActivity implements SelectedAdapter
 
         switch (Facing_MODE) {
             case 0:
-                viewBinding.switchCamera.setVisibility(View.VISIBLE);
+                switchCamera.setVisibility(View.VISIBLE);
                 break;
             case 1:
-                viewBinding.switchCamera.setVisibility(View.GONE);
-                viewBinding.camera.setFacing(Facing.BACK);
+                switchCamera.setVisibility(View.GONE);
+                camera.setFacing(Facing.BACK);
                 if (checkCameraFront(context)) {
-                    viewBinding.camera.setFacing(Facing.BACK);
+                    camera.setFacing(Facing.BACK);
                 } else if (checkCameraRear()) {
-                    viewBinding.camera.setFacing(Facing.FRONT);
+                    camera.setFacing(Facing.FRONT);
                 }
                 break;
             case 2:
-                viewBinding.switchCamera.setVisibility(View.GONE);
-                viewBinding.camera.setFacing(Facing.FRONT);
+                switchCamera.setVisibility(View.GONE);
+                camera.setFacing(Facing.FRONT);
                 if (checkCameraRear()) {
-                    viewBinding.camera.setFacing(Facing.FRONT);
+                    camera.setFacing(Facing.FRONT);
                 } else if (checkCameraFront(context)) {
-                    viewBinding.camera.setFacing(Facing.BACK);
+                    camera.setFacing(Facing.BACK);
                 }
                 break;
         }
 
         /*if (!checkCameraFront(context) || !checkCameraRear()) {
-            viewBinding.switchCamera.setVisibility(View.GONE);
+            switchCamera.setVisibility(View.GONE);
             if (!checkCameraFront(context)) {
-                viewBinding.camera.setFacing(Facing.BACK);
+                camera.setFacing(Facing.BACK);
             } else if (!checkCameraRear()) {
-                viewBinding.camera.setFacing(Facing.FRONT);
+                camera.setFacing(Facing.FRONT);
             }
         }*/
 
@@ -134,7 +164,7 @@ public class CameraActivity extends AppCompatActivity implements SelectedAdapter
 
     private void click() {
 
-        viewBinding.layBack.setOnClickListener(new View.OnClickListener() {
+        layBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 setResult(RESULT_CANCELED);
@@ -143,20 +173,20 @@ public class CameraActivity extends AppCompatActivity implements SelectedAdapter
             }
         });
 
-        viewBinding.switchCamera.setOnClickListener(new View.OnClickListener() {
+        switchCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (Facing_MODE == 0)
-                    if (viewBinding.camera.getFacing() == Facing.BACK) {
-                        viewBinding.camera.setFacing(Facing.FRONT);
+                    if (camera.getFacing() == Facing.BACK) {
+                        camera.setFacing(Facing.FRONT);
                     } else
-                        viewBinding.camera.setFacing(Facing.BACK);
+                        camera.setFacing(Facing.BACK);
 
                 onClickEvent(v);
             }
         });
 
-        viewBinding.capturePictureSnapshot.setOnClickListener(new View.OnClickListener() {
+        capturePictureSnapshot.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (checkSlot_AreFull()) {
@@ -166,12 +196,12 @@ public class CameraActivity extends AppCompatActivity implements SelectedAdapter
                     displayToast(context, getResources().getString(R.string.str_all_selected_images));
                     return;
                 }
-                viewBinding.camera.takePictureSnapshot();
+                camera.takePictureSnapshot();
                 onClickEvent(v);
             }
         });
 
-        viewBinding.layDone.setOnClickListener(new View.OnClickListener() {
+        layDone.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (list_new_pic_selected != null && list_new_pic_selected.size() != 0) {
@@ -238,13 +268,13 @@ public class CameraActivity extends AppCompatActivity implements SelectedAdapter
 
     private void resize() {
         HelperResizer.getInstance(context);
-        HelperResizer.setSize(viewBinding.btnBack, 70, 70, true);
-        HelperResizer.setSize(viewBinding.btnDone, 80, 80, true);
+        HelperResizer.setSize(btnBack, 70, 70, true);
+        HelperResizer.setSize(btnDone, 80, 80, true);
 
 
-        HelperResizer.setHeight(context, viewBinding.innerLay, 250);
-        HelperResizer.setHeight(context, viewBinding.actionBar, 150);
-        HelperResizer.setHeight(context, viewBinding.layText, 120);
+        HelperResizer.setHeight(context, innerLay, 250);
+        HelperResizer.setHeight(context, lay_actionBar, 150);
+        HelperResizer.setHeight(context, layText, 120);
 
 
     }
@@ -252,24 +282,24 @@ public class CameraActivity extends AppCompatActivity implements SelectedAdapter
     private void setupCamera() {
         //camera
         CameraLogger.setLogLevel(CameraLogger.LEVEL_VERBOSE);
-        viewBinding.camera.addCameraListener(new Listener());
+        camera.addCameraListener(new Listener());
 
     }
 
 
     private void setSelectedImageList() {
 
-        viewBinding.textView.setText("You can take upto" + ImgCount + " images");
+        textView.setText("You can take upto" + ImgCount + " images");
         list_new_pic_selected = new ArrayList<>();
         for (int i = 0; i < ImgCount; i++) {
             list_new_pic_selected.add(new ImageModel());
         }
         imageSelectedAdapter = new SelectedImageAdapter_Native(CameraActivity.this, list_new_pic_selected, this);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false);
-        viewBinding.rvSelectedImageList.setLayoutManager(layoutManager);
-        viewBinding.rvSelectedImageList.setAdapter(imageSelectedAdapter);
-        viewBinding.rvSelectedImageList.scrollToPosition(selectedPosition);
-        viewBinding.rvSelectedImageList.setScrollX(viewBinding.rvSelectedImageList.computeHorizontalScrollOffset());
+        rv_selectedImageList.setLayoutManager(layoutManager);
+        rv_selectedImageList.setAdapter(imageSelectedAdapter);
+        rv_selectedImageList.scrollToPosition(selectedPosition);
+        rv_selectedImageList.setScrollX(rv_selectedImageList.computeHorizontalScrollOffset());
         setBottomText();
     }
 
@@ -282,12 +312,12 @@ public class CameraActivity extends AppCompatActivity implements SelectedAdapter
                 }
             }
 
-        viewBinding.tv1.setText("Please Choose 1-" + list_new_pic_selected.size() + " Photos");
-        viewBinding.tv2.setText("(" + count + "/" + ImgCount + ")");
+        tv1.setText("Please Choose 1-" + list_new_pic_selected.size() + " Photos");
+        tv2.setText("(" + count + "/" + ImgCount + ")");
         if (count != 0) {
-            viewBinding.btnDone.setSelected(true);
+            btnDone.setSelected(true);
         } else {
-            viewBinding.btnDone.setSelected(false);
+            btnDone.setSelected(false);
         }
     }
 
@@ -355,7 +385,7 @@ public class CameraActivity extends AppCompatActivity implements SelectedAdapter
                     imageSelectedAdapter.notifyDataSetChanged();
                     setBottomText();
 
-                    viewBinding.rvSelectedImageList.smoothScrollToPosition(selectedPosition);
+                    rv_selectedImageList.smoothScrollToPosition(selectedPosition);
 
                 }
             });
@@ -396,19 +426,19 @@ public class CameraActivity extends AppCompatActivity implements SelectedAdapter
     @Override
     public void onResume() {
         super.onResume();
-        viewBinding.camera.open();
+        camera.open();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        viewBinding.camera.close();
+        camera.close();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        viewBinding.camera.destroy();
+        camera.destroy();
     }
 
 
