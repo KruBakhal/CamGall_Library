@@ -145,7 +145,7 @@ public class PickerBottomSheetFragment extends BottomSheetDialogFragment {
             }
         });
 
-        viewBinding.camera.setOnClickListener(new View.OnClickListener() {
+        viewBinding.cameraBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
