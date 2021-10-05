@@ -68,11 +68,11 @@ public class CameraActivity extends AppCompatActivity implements SelectedAdapter
     private boolean croppingStatus;
     private String croppingRatio;
     private RecyclerView rv_selectedImageList;
-    private LinearLayout innerLay, lay_actionBar, layBack, layDone, lay_camera, lay_capture, layBottom;
+    private LinearLayout innerLay, lay_actionBar, layBack, layDone, lay_camera,  layBottom;
     ImageView btnBack, btnDone, capturePictureSnapshot, switchCamera;
     private TextView tv2, tv1, tv_title, textView;
     CameraView camera;
-    View layText;
+    View layText,lay_capture;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
